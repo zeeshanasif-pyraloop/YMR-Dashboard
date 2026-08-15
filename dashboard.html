@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YMR Dashboard</title>
+<style>
+  :root{
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --surface-2:      #ffffff;
+    --page:           #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --border:         rgba(11,11,11,0.10);
+    --border-strong:  #c3c2b7;
+    --series-1:       #2a78d6; /* blue   */
+    --series-2:       #eb6834; /* orange */
+    --series-3:       #1baf7a; /* aqua   */
+    --series-4:       #eda100; /* yellow */
+    --series-5:       #e87ba4; /* magenta*/
+    --good:           #0ca30c;
+    --good-text:      #006300;
+    --critical:       #d03b3b;
+    --good-bg:        rgba(12,163,12,0.10);
+    --critical-bg:    rgba(208,59,59,0.10);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --surface-2:      #212120;
+      --page:           #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --border:         rgba(255,255,255,0.10);
+      --border-strong:  #383835;
+      --series-1:       #3987e5;
+      --series-2:       #d95926;
+      --series-3:       #199e70;
+      --series-4:       #c98500;
+      --series-5:       #d55181;
+      --good:           #0ca30c;
+      --good-text:      #0ca30c;
+      --critical:       #e66767;
+      --good-bg:        rgba(12,163,12,0.16);
+      --critical-bg:    rgba(230,103,103,0.16);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --surface-2:      #212120;
+    --page:           #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --border:         rgba(255,255,255,0.10);
+    --border-strong:  #383835;
+    --series-1:       #3987e5;
+    --series-2:       #d95926;
+    --series-3:       #199e70;
+    --series-4:       #c98500;
+    --series-5:       #d55181;
+    --good:           #0ca30c;
+    --good-text:      #0ca30c;
+    --critical:       #e66767;
+    --good-bg:        rgba(12,163,12,0.16);
+    --critical-bg:    rgba(230,103,103,0.16);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--page);
+    color:var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap{ max-width:1320px; margin:0 auto; padding:20px 24px 64px; }
+
+  /* ---------- header ---------- */
+  header.app{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
+    padding-bottom:16px; margin-bottom:16px; border-bottom:1px solid var(--gridline);
+  }
+  header.app h1{ font-size:22px; margin:0 0 4px; letter-spacing:-0.01em; }
+  header.app p{ margin:0; color:var(--text-secondary); font-size:13px; }
+  .head-right{ text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
+  .meta{ font-size:12px; color:var(--text-muted); }
+  .theme-btn{
+    border:1px solid var(--border-strong); background:var(--surface-2); color:var(--text-primary);
+    border-radius:8px; padding:6px 10px; font-size:12px; cursor:pointer;
+  }
+  .theme-btn:hover{ background:var(--gridline); }
+
+  /* ---------- cards / sections ---------- */
+  .card{
+    background:var(--surface-1); border:1px solid var(--border); border-radius:12px;
+    padding:16px; margin-bottom:20px;
+  }
+  .card h2{ font-size:14px; margin:0 0 12px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-secondary); }
+  .section-title{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .hint{ font-size:11px; color:var(--text-muted); font-weight:400; text-transform:none; letter-spacing:0; }
+
+  /* ---------- filters ---------- */
+  .filters-grid{ display:flex; flex-wrap:wrap; gap:20px; align-items:flex-end; }
+  .filter-group{ display:flex; flex-direction:column; gap:6px; }
+  .filter-label{ font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; }
+  .segmented{ display:inline-flex; border:1px solid var(--border-strong); border-radius:8px; overflow:hidden; }
+  .segmented button{
+    border:none; background:var(--surface-2); color:var(--text-secondary); padding:7px 14px;
+    font-size:13px; cursor:pointer; border-right:1px solid var(--border-strong);
+  }
+  .segmented button:last-child{ border-right:none; }
+  .segmented button.active{ background:var(--series-1); color:#fff; font-weight:600; }
+  select{
+    border:1px solid var(--border-strong); background:var(--surface-2); color:var(--text-primary);
+    border-radius:8px; padding:7px 10px; font-size:13px; min-width:130px;
+  }
+  .checkbox-row{ display:flex; flex-wrap:wrap; gap:14px; }
+  .checkbox-row label{
+    display:inline-flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;
+    padding:6px 10px; border:1px solid var(--border-strong); border-radius:8px; background:var(--surface-2);
+    user-select:none;
+  }
+  .checkbox-row input{ accent-color:var(--series-1); width:14px; height:14px; }
+  .checkbox-row label.unchecked{ opacity:.55; }
+
+  /* ---------- KPI cards ---------- */
+  .kpi-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; }
+  .kpi-card{
+    border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--surface-2);
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .kpi-top{ display:flex; align-items:center; justify-content:space-between; }
+  .kpi-label{ font-size:13px; font-weight:600; color:var(--text-primary); }
+  .status-pill{
+    display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700;
+    padding:3px 8px; border-radius:999px; letter-spacing:.02em;
+  }
+  .status-pill.good{ color:var(--good-text); background:var(--good-bg); }
+  .status-pill.critical{ color:var(--critical); background:var(--critical-bg); }
+  .status-pill.neutral{ color:var(--text-muted); background:var(--gridline); }
+  .kpi-value{ font-size:28px; font-weight:700; line-height:1; font-variant-numeric:tabular-nums; }
+  .kpi-sub{ font-size:12px; color:var(--text-secondary); display:flex; justify-content:space-between; font-variant-numeric:tabular-nums; }
+  .kpi-bar-track{ height:6px; border-radius:3px; background:var(--gridline); overflow:hidden; position:relative; }
+  .kpi-bar-fill{ height:100%; border-radius:3px; }
+  .kpi-bar-target{ position:absolute; top:-2px; bottom:-2px; width:2px; background:var(--text-primary); opacity:.55; }
+
+  /* ---------- breakdown table ---------- */
+  table.breakdown{ width:100%; border-collapse:collapse; font-size:13px; }
+  table.breakdown th, table.breakdown td{ padding:8px 10px; text-align:left; border-bottom:1px solid var(--gridline); }
+  table.breakdown th{ color:var(--text-muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+  table.breakdown td.num{ font-variant-numeric:tabular-nums; text-align:right; }
+  table.breakdown th.num{ text-align:right; }
+  .cell-status{ display:inline-flex; align-items:center; gap:5px; font-weight:600; }
+  .dot{ width:8px; height:8px; border-radius:50%; display:inline-block; flex:none; }
+  .dot.good{ background:var(--good); }
+  .dot.critical{ background:var(--critical); }
+  .table-scroll{ overflow-x:auto; }
+
+  /* ---------- pies ---------- */
+  .pie-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; }
+  .pie-card{ border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--surface-2); }
+  .pie-card h3{ font-size:13px; margin:0 0 10px; font-weight:600; }
+  .pie-body{ display:flex; align-items:center; gap:14px; }
+  .pie-legend{ flex:1; display:flex; flex-direction:column; gap:6px; font-size:12px; }
+  .legend-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .legend-name{ display:flex; align-items:center; gap:6px; color:var(--text-secondary); }
+  .legend-value{ font-variant-numeric:tabular-nums; color:var(--text-primary); font-weight:600; }
+  .swatch{ width:10px; height:10px; border-radius:2px; flex:none; }
+  .empty-note{ font-size:12px; color:var(--text-muted); padding:20px 0; text-align:center; }
+
+  /* ---------- insights ---------- */
+  .insight-controls{ display:flex; flex-wrap:wrap; gap:18px; margin-bottom:14px; }
+  .insight-list{ display:flex; flex-direction:column; gap:10px; }
+  .insight-item{
+    border:1px solid var(--border); border-left:4px solid var(--critical); border-radius:8px;
+    padding:12px 14px; background:var(--surface-2);
+  }
+  .insight-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+  .insight-scope{ font-weight:700; font-size:13px; }
+  .insight-attr{ font-size:12px; color:var(--text-secondary); }
+  .insight-metrics{ font-size:12px; color:var(--text-muted); font-variant-numeric:tabular-nums; margin-top:2px; }
+  .insight-dev{ font-weight:700; color:var(--critical); font-size:13px; }
+  .insight-sev-track{ height:4px; background:var(--gridline); border-radius:2px; margin-top:8px; overflow:hidden; }
+  .insight-sev-fill{ height:100%; background:var(--critical); }
+  .insight-action{ margin-top:8px; font-size:13px; color:var(--text-primary); }
+  .insight-action b{ color:var(--text-secondary); font-weight:600; }
+
+  footer{ margin-top:24px; font-size:11px; color:var(--text-muted); text-align:center; }
+  footer code{ background:var(--gridline); padding:1px 5px; border-radius:4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="app">
+    <div>
+      <h1>YMR Dashboard</h1>
+      <p>Yarn Material Reconciliation — Overall, Plant-wise &amp; Unit-wise</p>
+    </div>
+    <div class="head-right">
+      <button class="theme-btn" id="themeToggle" type="button">Toggle theme</button>
+      <div class="meta" id="dataMeta">Loading data…</div>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2>Filters</h2>
+    <div class="filters-grid">
+      <div class="filter-group">
+        <span class="filter-label">Location</span>
+        <div class="segmented" id="locationSeg"></div>
+      </div>
+      <div class="filter-group" id="unitGroup" style="display:none;">
+        <span class="filter-label">Unit</span>
+        <select id="unitSelect"></select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Period</span>
+        <div class="segmented" id="periodSeg"></div>
+      </div>
+      <div class="filter-group" id="monthGroup">
+        <span class="filter-label">Month</span>
+        <select id="monthSelect"></select>
+      </div>
+      <div class="filter-group" style="flex:1; min-width:280px;">
+        <span class="filter-label">Attributes</span>
+        <div class="checkbox-row" id="attrChecks"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-title">
+      <h2>Performance vs Target</h2>
+      <span class="hint" id="scopeLabel"></span>
+    </div>
+    <div class="kpi-grid" id="kpiGrid"></div>
+  </section>
+
+  <section class="card">
+    <div class="section-title">
+      <h2 id="breakdownTitle">Breakdown</h2>
+      <span class="hint">Target is plant-wise; actual is calculated from the source formula for each attribute</span>
+    </div>
+    <div class="table-scroll">
+      <table class="breakdown" id="breakdownTable"></table>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-title">
+      <h2>Composition</h2>
+      <span class="hint">Contribution to each attribute's total for the current scope &amp; period</span>
+    </div>
+    <div class="pie-grid" id="pieGrid"></div>
+  </section>
+
+  <section class="card">
+    <h2>AI Insights — Red-Flagged Areas</h2>
+    <div class="insight-controls">
+      <div class="filter-group">
+        <span class="filter-label">View</span>
+        <div class="segmented" id="insightViewSeg"></div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Breakdown</span>
+        <div class="segmented" id="insightBreakdownSeg"></div>
+      </div>
+    </div>
+    <div class="insight-list" id="insightList"></div>
+    <div class="hint" style="margin-top:10px;">Insights are generated on-device by a rule-based severity ranking over the source formulas and targets — no external AI service or network call is used.</div>
+  </section>
+
+  <footer>
+    Source: <code id="sourceFileLabel">Data/YMR.xlsx</code> · Edit the Excel file, then run <code>Update_Dashboard.bat</code> to refresh this dashboard.
+  </footer>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/dashboard.js"></script>
+</body>
+</html>
