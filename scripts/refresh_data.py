@@ -24,15 +24,17 @@ SOURCE_FILE = ROOT / "Data" / "YMR.xlsx"
 SHEET_NAME = "YMR Factors"
 OUTPUT_FILE = ROOT / "assets" / "data.js"
 
-# Maps the 5 attributes the dashboard tracks (per instruction.md checkboxes)
-# to the "Attribute" label used in the source file's M:Q table, and to the
-# camelCase field name used for the matching data column (D:K).
+# Maps the attributes the dashboard tracks (per instruction.md) to the
+# "Attribute" label used in the source file's M:Q table, and to the camelCase
+# field name used for the matching data column (D:K).
+# "Yield %" is the headline YMR % metric.
 ATTRIBUTE_MAP = {
-    "Shortfall %":     {"key": "shortfall",   "checkboxLabel": "Shortfall"},
-    "C-Grade %":       {"key": "cGrade",      "checkboxLabel": "C Grade"},
-    "Yarn Waste %":    {"key": "yarnWaste",   "checkboxLabel": "Yarn Waste"},
-    "UC Small Lots %": {"key": "ucSmallLots", "checkboxLabel": "UC Small Lot"},
-    "Gain/Loss %":     {"key": "gainLoss",    "checkboxLabel": "Gain/Loss"},
+    "Yield %":         {"key": "yield",       "sliceLabel": "Yield %"},
+    "Shortfall %":     {"key": "shortfall",   "sliceLabel": "Shortfall"},
+    "C-Grade %":       {"key": "cGrade",      "sliceLabel": "C Grade"},
+    "Yarn Waste %":    {"key": "yarnWaste",   "sliceLabel": "Yarn Waste"},
+    "UC Small Lots %": {"key": "ucSmallLots", "sliceLabel": "UC Small Lot"},
+    "Gain/Loss %":     {"key": "gainLoss",    "sliceLabel": "Gain/Loss"},
 }
 
 # Source column header (row A:K) -> camelCase field name used everywhere else.
@@ -123,7 +125,7 @@ def main():
             direction = ws.cell(row=r, column=17).value  # Q
             attributes.append({
                 "key": meta["key"],
-                "label": meta["checkboxLabel"],
+                "label": meta["sliceLabel"],
                 "sourceLabel": label,
                 "formula": formula,
                 "direction": direction,
@@ -140,7 +142,7 @@ def main():
         print(f"WARNING: could not find attribute definitions for: {sorted(missing)}")
 
     # Keep attributes in the fixed spec order regardless of source row order.
-    order = ["shortfall", "cGrade", "yarnWaste", "ucSmallLots", "gainLoss"]
+    order = ["yield", "shortfall", "cGrade", "yarnWaste", "ucSmallLots", "gainLoss"]
     attributes.sort(key=lambda a: order.index(a["key"]))
 
     payload = {

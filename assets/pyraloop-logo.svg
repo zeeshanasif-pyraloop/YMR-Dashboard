@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 110" role="img" aria-label="Pyraloop">
+  <title>Pyraloop</title>
+  <style>
+    .pl-word{ font-family:"Arial Black","Arial Bold","Segoe UI Black",Impact,system-ui,sans-serif;
+              font-weight:900; font-size:88px; letter-spacing:-2px; }
+    .pl-dark{ fill:#111111; }
+    .pl-red { fill:#e2231a; }
+  </style>
+  <text x="6" y="84" class="pl-word">
+    <tspan class="pl-dark">PYR</tspan><tspan class="pl-red">A</tspan><tspan class="pl-dark">L</tspan><tspan class="pl-red">OO</tspan><tspan class="pl-dark">P</tspan>
+  </text>
+</svg>

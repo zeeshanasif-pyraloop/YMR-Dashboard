@@ -28,7 +28,7 @@
     --critical-bg:    rgba(208,59,59,0.10);
   }
   @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
+    :root:not([data-theme]){
       color-scheme: dark;
       --surface-1:      #1a1a19;
       --surface-2:      #212120;
@@ -74,6 +74,30 @@
     --critical-bg:    rgba(230,103,103,0.16);
   }
 
+  /* Anti-Gravity — deep-space palette, chosen from the theme selector */
+  :root[data-theme="antigravity"]{
+    color-scheme: dark;
+    --surface-1:      #12122e;
+    --surface-2:      #181840;
+    --page:           #07071a;
+    --text-primary:   #f2f2ff;
+    --text-secondary: #bcbcf0;
+    --text-muted:     #8a8ac2;
+    --gridline:       #2a2a63;
+    --border:         rgba(255,255,255,0.12);
+    --border-strong:  #3d3d85;
+    --series-1:       #8b7dff; /* violet  */
+    --series-2:       #ff5fa2; /* magenta */
+    --series-3:       #35e0e0; /* cyan    */
+    --series-4:       #ffb545; /* amber   */
+    --series-5:       #6ee787; /* mint    */
+    --good:           #2ee6a8;
+    --good-text:      #2ee6a8;
+    --critical:       #ff5d6e;
+    --good-bg:        rgba(46,230,168,0.16);
+    --critical-bg:    rgba(255,93,110,0.16);
+  }
+
   *{ box-sizing:border-box; }
   html,body{ margin:0; padding:0; }
   body{
@@ -111,26 +135,113 @@
   /* ---------- filters ---------- */
   .filters-grid{ display:flex; flex-wrap:wrap; gap:20px; align-items:flex-end; }
   .filter-group{ display:flex; flex-direction:column; gap:6px; }
-  .filter-label{ font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; }
-  .segmented{ display:inline-flex; border:1px solid var(--border-strong); border-radius:8px; overflow:hidden; }
-  .segmented button{
-    border:none; background:var(--surface-2); color:var(--text-secondary); padding:7px 14px;
-    font-size:13px; cursor:pointer; border-right:1px solid var(--border-strong);
+  /* Unit, Filter and the two panel buttons share one row at any width. The Filter pills
+     take all the slack and never wrap: a financial year with twelve months is more pills
+     than the row can show, so the strip scrolls sideways instead of growing a second line. */
+  #monthGroup{ flex:1 1 0; min-width:0; }
+  #monthSlicer{
+    flex-wrap:nowrap; overflow-x:auto; overscroll-behavior-x:contain;
+    scrollbar-width:thin; scrollbar-color:var(--border-strong) transparent;
+    padding-bottom:2px;   /* room for the scrollbar so it can't clip the pills */
   }
-  .segmented button:last-child{ border-right:none; }
-  .segmented button.active{ background:var(--series-1); color:#fff; font-weight:600; }
+  #monthSlicer::-webkit-scrollbar{ height:6px; }
+  #monthSlicer::-webkit-scrollbar-track{ background:transparent; }
+  #monthSlicer::-webkit-scrollbar-thumb{ background:var(--border-strong); border-radius:3px; }
+  /* the month pills are the densest part of the row, so they run a size below the Unit
+     pills to buy horizontal room before scrolling starts; flex:none stops the nowrap
+     container from squashing them instead */
+  #monthSlicer .pill{ flex:none; font-size:12px; padding:6px 11px; }
+  /* panel-toggle buttons ride at the far right of the Unit/Filter row */
+  .filter-actions{ display:flex; align-items:flex-end; gap:10px; flex-wrap:wrap; margin-left:auto; }
+  .filter-label{ font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; }
   select{
     border:1px solid var(--border-strong); background:var(--surface-2); color:var(--text-primary);
     border-radius:8px; padding:7px 10px; font-size:13px; min-width:130px;
   }
-  .checkbox-row{ display:flex; flex-wrap:wrap; gap:14px; }
-  .checkbox-row label{
-    display:inline-flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;
-    padding:6px 10px; border:1px solid var(--border-strong); border-radius:8px; background:var(--surface-2);
-    user-select:none;
+  /* attribute slicer — pills, no checkboxes */
+  .pill-row{ display:flex; flex-wrap:wrap; gap:8px; }
+  .pill{
+    font-size:13px; cursor:pointer; padding:7px 14px; border-radius:8px; user-select:none;
+    border:1px solid var(--border-strong); background:var(--surface-2); color:var(--text-secondary);
   }
-  .checkbox-row input{ accent-color:var(--series-1); width:14px; height:14px; }
-  .checkbox-row label.unchecked{ opacity:.55; }
+  .pill:hover{ border-color:var(--series-1); }
+  .pill.active{ background:var(--series-1); border-color:var(--series-1); color:#fff; font-weight:600; }
+
+  /* ---------- panel-toggle buttons (AI Insights, Performance, Composition) ---------- */
+  .insight-btn{
+    display:inline-flex; align-items:center; gap:10px; cursor:pointer;
+    border:1px solid var(--border-strong); background:var(--surface-2); color:var(--text-primary);
+    border-radius:10px; padding:11px 18px; font-size:14px; font-weight:600;
+  }
+  .insight-btn:hover{ border-color:var(--series-1); }
+  .insight-btn.open{ background:var(--series-1); border-color:var(--series-1); color:#fff; }
+  .insight-btn .count{
+    font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px;
+    background:var(--critical); color:#fff;
+  }
+  .insight-btn.open .count{ background:rgba(255,255,255,0.25); }
+  .insight-btn .chev{ font-size:11px; opacity:.7; }
+  /* sits in the pill row, so it stays small enough to keep Unit + Filter + both
+     buttons on a single line at a normal desktop width */
+  .insight-btn.compact{ padding:5px 10px; font-size:12px; font-weight:600; gap:6px; border-radius:8px; }
+  .insight-btn.compact .chev{ font-size:9px; }
+
+  /* ---------- brand header + control row ---------- */
+  .brand-row{
+    display:flex; align-items:center; justify-content:space-between; gap:20px;
+    padding-bottom:14px; border-bottom:1px solid var(--gridline);
+  }
+  .brand-title{ font-size:26px; font-weight:800; margin:0; letter-spacing:-0.02em; }
+  .brand-logo{ display:flex; align-items:center; gap:12px; flex:0 1 auto; min-width:0; }
+  .brand-logo svg{ height:34px; width:auto; max-width:240px; display:block; }
+  /* the official logo is wide (≈6.6:1), so it scales down rather than pushing the
+     brand row past the viewport once there is no room for it at full height */
+  .brand-logo img{ height:auto; width:auto; max-height:34px; max-width:min(240px,100%); display:block; }
+  .brand-logo svg[hidden], .brand-logo img[hidden]{ display:none; }
+  .logo-dark{ fill:var(--text-primary); }
+  .logo-red{ fill:#e2231a; }
+
+  .control-row{
+    display:flex; align-items:flex-end; gap:28px; flex-wrap:wrap;
+    margin:16px 0 20px;
+  }
+  /* each control is only as wide as its own longest option — they used to share the row
+     equally, which stretched every dropdown far past the text it holds */
+  .control-row .control-cell{ display:flex; flex-direction:column; gap:6px; flex:0 0 auto; }
+  .control-row select{ min-width:0; width:auto; }
+
+  /* ---------- Yield % trend chart ---------- */
+  .trend-head{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:12px; }
+  .trend-head h2{ margin:0; }
+  .trend-legend{ display:flex; gap:18px; flex-wrap:wrap; font-size:12px; color:var(--text-secondary); }
+  .trend-key{ display:inline-flex; align-items:center; gap:7px; }
+  .trend-key .line{ width:22px; height:0; border-top:3px solid var(--series-1); border-radius:2px; }
+  .trend-key .line.target{ border-top:3px dashed var(--text-primary); opacity:.75; }
+  .chart-scroll{ overflow-x:auto; }
+  svg.trend{ display:block; min-width:640px; width:100%; height:auto; }
+  svg.trend .grid{ stroke:var(--gridline); stroke-width:1; }
+  svg.trend .axis-text{ fill:var(--text-muted); font-size:11px; }
+  svg.trend .value-text{ fill:var(--text-primary); font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; }
+  svg.trend .target-text{ fill:var(--text-primary); font-size:11px; font-weight:700; }
+  svg.trend .target-line{ stroke:var(--text-primary); stroke-width:2; stroke-dasharray:7 5; opacity:.75; }
+  svg.trend .series-line{ fill:none; stroke:var(--series-1); stroke-width:2.5; stroke-linejoin:round; stroke-linecap:round; }
+  svg.trend .sel-band{ fill:var(--series-1); opacity:.10; }
+
+  /* ---------- square icon button + full view ---------- */
+  .icon-btn{
+    width:32px; height:32px; flex:none; cursor:pointer; border-radius:8px;
+    border:1px solid var(--border-strong); background:var(--surface-2); color:var(--text-secondary);
+    display:inline-flex; align-items:center; justify-content:center; font-size:15px; line-height:1;
+  }
+  .icon-btn:hover{ border-color:var(--series-1); color:var(--series-1); }
+  .icon-btn.on{ background:var(--series-1); border-color:var(--series-1); color:#fff; }
+  .title-actions{ display:flex; align-items:center; gap:10px; }
+  .card.fullview{
+    position:fixed; inset:14px; z-index:60; margin:0; overflow:auto;
+    box-shadow:0 24px 70px rgba(0,0,0,0.38);
+  }
+  .card.fullview .pie-grid{ grid-template-columns:repeat(auto-fit,minmax(560px,1fr)); }
+  body.fullview-lock{ overflow:hidden; }
 
   /* ---------- KPI cards ---------- */
   .kpi-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; }
@@ -153,24 +264,15 @@
   .kpi-bar-fill{ height:100%; border-radius:3px; }
   .kpi-bar-target{ position:absolute; top:-2px; bottom:-2px; width:2px; background:var(--text-primary); opacity:.55; }
 
-  /* ---------- breakdown table ---------- */
-  table.breakdown{ width:100%; border-collapse:collapse; font-size:13px; }
-  table.breakdown th, table.breakdown td{ padding:8px 10px; text-align:left; border-bottom:1px solid var(--gridline); }
-  table.breakdown th{ color:var(--text-muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
-  table.breakdown td.num{ font-variant-numeric:tabular-nums; text-align:right; }
-  table.breakdown th.num{ text-align:right; }
-  .cell-status{ display:inline-flex; align-items:center; gap:5px; font-weight:600; }
-  .dot{ width:8px; height:8px; border-radius:50%; display:inline-block; flex:none; }
-  .dot.good{ background:var(--good); }
-  .dot.critical{ background:var(--critical); }
-  .table-scroll{ overflow-x:auto; }
-
-  /* ---------- pies ---------- */
-  .pie-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; }
-  .pie-card{ border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--surface-2); }
-  .pie-card h3{ font-size:13px; margin:0 0 10px; font-weight:600; }
-  .pie-body{ display:flex; align-items:center; gap:14px; }
-  .pie-legend{ flex:1; display:flex; flex-direction:column; gap:6px; font-size:12px; }
+  /* ---------- composition pies (one per plant) ---------- */
+  .pie-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(430px,1fr)); gap:16px; }
+  .pie-card{ border:1px solid var(--border); border-radius:10px; padding:18px; background:var(--surface-2); }
+  .pie-card h3{ font-size:13px; margin:0 0 4px; font-weight:600; }
+  .pie-card .pie-scope{ font-size:12px; color:var(--text-muted); margin-bottom:12px; }
+  .pie-body{ display:flex; align-items:center; gap:28px; flex-wrap:wrap; justify-content:center; }
+  .pie-slice-label{ font-size:11px; font-weight:700; fill:#fff; paint-order:stroke; stroke:rgba(0,0,0,0.35); stroke-width:2.5px; stroke-linejoin:round; }
+  .pie-slice-label.sub{ font-size:10px; font-weight:600; }
+  .pie-legend{ flex:1; min-width:230px; display:flex; flex-direction:column; gap:6px; font-size:12px; }
   .legend-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
   .legend-name{ display:flex; align-items:center; gap:6px; color:var(--text-secondary); }
   .legend-value{ font-variant-numeric:tabular-nums; color:var(--text-primary); font-weight:600; }
@@ -178,7 +280,6 @@
   .empty-note{ font-size:12px; color:var(--text-muted); padding:20px 0; text-align:center; }
 
   /* ---------- insights ---------- */
-  .insight-controls{ display:flex; flex-wrap:wrap; gap:18px; margin-bottom:14px; }
   .insight-list{ display:flex; flex-direction:column; gap:10px; }
   .insight-item{
     border:1px solid var(--border); border-left:4px solid var(--critical); border-radius:8px;
@@ -201,44 +302,79 @@
 <body>
 <div class="wrap">
 
-  <header class="app">
+  <header class="brand-row">
     <div>
-      <h1>YMR Dashboard</h1>
-      <p>Yarn Material Reconciliation — Overall, Plant-wise &amp; Unit-wise</p>
+      <h1 class="brand-title">KPI YMR Dashboard</h1>
     </div>
-    <div class="head-right">
-      <button class="theme-btn" id="themeToggle" type="button">Toggle theme</button>
-      <div class="meta" id="dataMeta">Loading data…</div>
+    <div class="brand-logo">
+      <!-- Drop an official file at assets/pyraloop-logo.png (or .svg) and it replaces this wordmark. -->
+      <img id="brandLogoImg" src="assets/pyraloop-logo.png" alt="Pyraloop" hidden>
+      <svg id="brandLogoWord" viewBox="0 0 560 110" role="img" aria-label="Pyraloop">
+        <text x="6" y="84" font-family="Arial Black, Arial Bold, Segoe UI Black, Impact, sans-serif" font-weight="900" font-size="88" letter-spacing="-2"><tspan class="logo-dark">PYR</tspan><tspan class="logo-red">A</tspan><tspan class="logo-dark">L</tspan><tspan class="logo-red">OO</tspan><tspan class="logo-dark">P</tspan></text>
+      </svg>
     </div>
   </header>
 
+  <div class="control-row">
+    <div class="control-cell">
+      <span class="filter-label">Theme</span>
+      <select id="themeSelect">
+        <option value="system">System default</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark mode</option>
+        <option value="antigravity">Anti-Gravity</option>
+      </select>
+    </div>
+    <div class="control-cell">
+      <span class="filter-label">Financial Year</span>
+      <select id="fySelect"></select>
+    </div>
+    <div class="control-cell">
+      <span class="filter-label">Plant</span>
+      <select id="plantSelect"></select>
+    </div>
+    <div class="control-cell action">
+      <button class="insight-btn" id="insightsToggle" type="button" aria-expanded="false" aria-controls="insightsPanel">
+        <span>AI Insights</span>
+        <span class="count" id="insightsCount">0</span>
+        <span class="chev" id="insightsChev">▼</span>
+      </button>
+    </div>
+  </div>
+
+  <section class="card" id="insightsPanel" hidden>
+    <div class="section-title">
+      <h2>AI Insights — Red-Flagged Areas</h2>
+      <span class="hint" id="insightScopeLabel"></span>
+    </div>
+    <div class="insight-list" id="insightList"></div>
+    <div class="hint" style="margin-top:10px;">Insights are generated on-device by a rule-based severity ranking over the source formulas and targets — no external AI service or network call is used.</div>
+  </section>
+
   <section class="card">
-    <h2>Filters</h2>
     <div class="filters-grid">
-      <div class="filter-group">
-        <span class="filter-label">Location</span>
-        <div class="segmented" id="locationSeg"></div>
-      </div>
-      <div class="filter-group" id="unitGroup" style="display:none;">
+      <div class="filter-group" id="unitGroup">
         <span class="filter-label">Unit</span>
-        <select id="unitSelect"></select>
-      </div>
-      <div class="filter-group">
-        <span class="filter-label">Period</span>
-        <div class="segmented" id="periodSeg"></div>
+        <div class="pill-row" id="unitSlicer"></div>
       </div>
       <div class="filter-group" id="monthGroup">
-        <span class="filter-label">Month</span>
-        <select id="monthSelect"></select>
+        <span class="filter-label">Filter</span>
+        <div class="pill-row" id="monthSlicer"></div>
       </div>
-      <div class="filter-group" style="flex:1; min-width:280px;">
-        <span class="filter-label">Attributes</span>
-        <div class="checkbox-row" id="attrChecks"></div>
+      <div class="filter-actions">
+        <button class="insight-btn compact" id="performanceToggle" type="button" aria-expanded="false" aria-controls="performancePanel">
+          <span>Performance vs Target</span>
+          <span class="chev" id="performanceChev">▼</span>
+        </button>
+        <button class="insight-btn compact" id="compositionToggle" type="button" aria-expanded="false" aria-controls="compositionCard">
+          <span>Composition</span>
+          <span class="chev" id="compositionChev">▼</span>
+        </button>
       </div>
     </div>
   </section>
 
-  <section class="card">
+  <section class="card" id="performancePanel" hidden>
     <div class="section-title">
       <h2>Performance vs Target</h2>
       <span class="hint" id="scopeLabel"></span>
@@ -247,37 +383,25 @@
   </section>
 
   <section class="card">
-    <div class="section-title">
-      <h2 id="breakdownTitle">Breakdown</h2>
-      <span class="hint">Target is plant-wise; actual is calculated from the source formula for each attribute</span>
-    </div>
-    <div class="table-scroll">
-      <table class="breakdown" id="breakdownTable"></table>
-    </div>
-  </section>
-
-  <section class="card">
-    <div class="section-title">
-      <h2>Composition</h2>
-      <span class="hint">Contribution to each attribute's total for the current scope &amp; period</span>
-    </div>
-    <div class="pie-grid" id="pieGrid"></div>
-  </section>
-
-  <section class="card">
-    <h2>AI Insights — Red-Flagged Areas</h2>
-    <div class="insight-controls">
-      <div class="filter-group">
-        <span class="filter-label">View</span>
-        <div class="segmented" id="insightViewSeg"></div>
-      </div>
-      <div class="filter-group">
-        <span class="filter-label">Breakdown</span>
-        <div class="segmented" id="insightBreakdownSeg"></div>
+    <div class="trend-head">
+      <h2>Yield % (YMR %) Trend</h2>
+      <div class="trend-legend">
+        <span class="trend-key"><i class="line"></i> Achieved Yield %</span>
+        <span class="trend-key"><i class="line target"></i> Target</span>
       </div>
     </div>
-    <div class="insight-list" id="insightList"></div>
-    <div class="hint" style="margin-top:10px;">Insights are generated on-device by a rule-based severity ranking over the source formulas and targets — no external AI service or network call is used.</div>
+    <div class="chart-scroll" id="trendWrap"></div>
+  </section>
+
+  <section class="card" id="compositionCard" hidden>
+    <div class="section-title">
+      <h2>Composition — Attribute Breakup</h2>
+      <div class="title-actions">
+        <span class="hint">Each slice shows that attribute's actual % for the selected scope</span>
+        <button class="icon-btn" id="compFullBtn" type="button" title="Full view" aria-label="Open composition in full view" aria-pressed="false">⛶</button>
+      </div>
+    </div>
+    <div class="pie-grid" id="pieWrap"></div>
   </section>
 
   <footer>
